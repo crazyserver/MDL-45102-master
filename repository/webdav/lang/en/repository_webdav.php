@@ -37,3 +37,5 @@ $string['webdavbasicauth'] = 'WebDAV basic authentication';
 $string['webdavdigestauth'] = 'WebDAV digest authentication';
 $string['webdav'] = 'WebDAV';
 $string['webdav:view'] = 'View WebDav repository';
+$string['cachelimit'] = 'Cache limit';
+$string['cachelimit_info'] = 'Enter the maximum size of files (in bytes) to be cached on server for WebDAV aliases/shortcuts. Cached files will be served when the source is no longer available. Empty value or zero mean caching of all files regardless of size.';
