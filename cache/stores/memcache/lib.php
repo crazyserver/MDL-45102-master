@@ -118,6 +118,12 @@ class cachestore_memcache extends cache_store implements cache_is_configurable {
     const DEFAULT_PREFIX = 'mdl_';
 
     /**
+     * Store the original selected prefix (the one from the configuration file).
+     * @var string
+     */
+    private $originalprefix = "";
+
+    /**
      * Constructs the store instance.
      *
      * Noting that this function is not an initialisation. It is used to prepare the store for use.
@@ -209,6 +215,11 @@ class cachestore_memcache extends cache_store implements cache_is_configurable {
         $this->definition = $definition;
         $this->isinitialised = true;
         $this->encode = self::require_encoding();
+
+        // Remember the prefix.
+        $this->originalprefix = $this->prefix;
+        // Initialise the purgenumber.
+        $this->set_purgenumber($this->get_purgenumber());
     }
 
     /**
@@ -307,6 +318,57 @@ class cachestore_memcache extends cache_store implements cache_is_configurable {
         }
         $key = $this->prefix . $key;
         return $key;
+    }
+
+    /**
+     * Gets the purgenumber for the defined area from the memcache itself
+     *
+     * @return integer The purgenumber of the current definition.
+     */
+    private function get_purgenumber() {
+        $name = $this->get_purgenumber_name();
+        $purgenumber = $this->connection->get($name);
+        if (!$purgenumber) {
+            return 0;
+        }
+        return $purgenumber;
+    }
+
+    /**
+     * Increments the number of purges, and sets the new prefix
+     */
+    private function increment_purgenumber() {
+        $purgenumber = $this->get_purgenumber() + 1;
+        $this->set_purgenumber($purgenumber);
+    }
+
+    /**
+     * Stores the new number to the memcache and sets the new prefix
+     * NOTE: Possibly we can find a better place to store it
+     *
+     * @param string $number The new number to attatch to the prefix.
+     */
+    private function set_purgenumber($number) {
+        if ($this->isready) {
+            $name = $this->get_purgenumber_name();
+            if ($this->clustered) {
+                foreach ($this->setconnections as $connection) {
+                    $connection->set($name, $number, MEMCACHE_COMPRESSED, 0);
+                }
+            }
+            // The new prefix is defined by the original, a key to the definition and the number of purges.
+            $this->connection->set($name, $number, MEMCACHE_COMPRESSED, 0);
+        }
+        $this->prefix = $this->originalprefix.$this->definition->generate_single_key_prefix().$number;
+    }
+
+    /**
+     * Gets the name of the key to retrieve the data from the memcache
+     *
+     * @return string The memcache key where is stored the purgenumber of the current definition.
+     */
+    private function get_purgenumber_name() {
+        return $this->originalprefix.'_'.$this->definition->generate_single_key_prefix().'_purgenumber';
     }
 
     /**
@@ -433,19 +495,14 @@ class cachestore_memcache extends cache_store implements cache_is_configurable {
     }
 
     /**
-     * Purges the cache deleting all items within it.
+     * Purges the cache changing the purgenumber
      *
      * @return boolean True on success. False otherwise.
      */
     public function purge() {
         if ($this->isready) {
-            if ($this->clustered) {
-                foreach ($this->setconnections as $connection) {
-                    $connection->flush();
-                }
-            } else {
-                $this->connection->flush();
-            }
+            // The cache will be never cleared!
+            $this->increment_purgenumber();
         }
 
         return true;
