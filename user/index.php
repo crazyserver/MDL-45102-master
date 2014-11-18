@@ -435,14 +435,22 @@ $params['contextlevel'] = CONTEXT_USER;
 $select .= $ccselect;
 $joins[] = $ccjoin;
 
+// We want to query both the current context and parent contexts.
+list($relatedctxsql, $relatedctxparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'relatedctx');
+$params = array_merge($params, $relatedctxparams);
+$profileroles = explode(',', $CFG->profileroles);
 
 // Limit list to users with some role only.
 if ($roleid) {
-    // We want to query both the current context and parent contexts.
-    list($relatedctxsql, $relatedctxparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'relatedctx');
-
+    if (!in_array($roleid, $profileroles)) {
+        print_error('wrongroleid');
+    }
     $wheres[] = "u.id IN (SELECT userid FROM {role_assignments} WHERE roleid = :roleid AND contextid $relatedctxsql)";
-    $params = array_merge($params, array('roleid' => $roleid), $relatedctxparams);
+    $params = array_merge($params, array('roleid' => $roleid));
+} else {
+    list($insql, $inparams) = $DB->get_in_or_equal($profileroles, SQL_PARAMS_NAMED);
+    $wheres[] = "u.id IN (SELECT userid FROM {role_assignments} WHERE roleid $insql AND contextid $relatedctxsql)";
+    $params = array_merge($params, $inparams);
 }
 
 $from = implode("\n", $joins);
