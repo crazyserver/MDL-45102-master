@@ -70,7 +70,7 @@ class cache_config_writer extends cache_config {
         global $CFG;
         $cachefile = static::get_config_file_path();
         $directory = dirname($cachefile);
-        if ($directory !== $CFG->dataroot && !file_exists($directory)) {
+        if ($directory !== $CFG->dataroot && !file_exists($directory) && is_writable($directory)) {
             $result = make_writable_directory($directory, false);
             if (!$result) {
                 throw new cache_exception('ex_configcannotsave', 'cache', '', null, 'Cannot create config directory. Check the permissions on your moodledata directory.');

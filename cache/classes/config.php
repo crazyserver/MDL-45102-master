@@ -105,6 +105,16 @@ class cache_config {
     }
 
     /**
+     * Checks if the configuration is writable.
+     *
+     * @return bool True if it is writable
+     */
+    public static function config_file_is_writable() {
+        // Allow for late static binding by using static.
+        return is_writable(static::get_config_file_path());
+    }
+
+    /**
      * Returns the expected path to the configuration file.
      *
      * @return string The absolute path
@@ -113,13 +123,11 @@ class cache_config {
         global $CFG;
         if (!empty($CFG->altcacheconfigpath)) {
             $path = $CFG->altcacheconfigpath;
-            if (is_dir($path) && is_writable($path)) {
+            if (is_dir($path)) {
                 // Its a writable directory, thats fine.
                 return $path.'/cacheconfig.php';
-            } else if (is_writable(dirname($path)) && (!file_exists($path) || is_writable($path))) {
-                // Its a file, either it doesn't exist and the directory is writable or the file exists and is writable.
-                return $path;
             }
+            return $path;
         }
         // Return the default location within dataroot.
         return $CFG->dataroot.'/muc/config.php';
