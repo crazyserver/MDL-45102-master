@@ -728,7 +728,7 @@ class core_message_external extends external_api {
         }
 
         $orderdirection = $newestfirst ? 'DESC' : 'ASC';
-        $sort = "mr.timecreated $orderdirection";
+        $sort = "mr.timecreated $orderdirection, mr.id $orderdirection";
 
         if ($messages = message_get_messages($useridto, $useridfrom, $notifications, $read, $sort, $limitfrom, $limitnum)) {
             $canviewfullname = has_capability('moodle/site:viewfullnames', $context);

@@ -766,7 +766,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
                 OR (message.useridto   = :userid5 AND message.useridfrom   = otheruser.id)
          LEFT JOIN {message_contacts} contact ON contact.userid  = :userid3 AND contact.contactid = otheruser.id
              WHERE otheruser.deleted = 0 AND message.notification = 0
-          ORDER BY message.timecreated DESC";
+          ORDER BY message.timecreated DESC, message.id DESC";
     $params = array(
             'userid1' => $user->id,
             'userid2' => $user->id,
@@ -809,7 +809,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
     // Sort the conversations by $conversation->timecreated, newest to oldest
     // There may be multiple conversations with the same timecreated
     // The conversations array contains both read and unread messages (different tables) so sorting by ID won't work
-    $result = core_collator::asort_objects_by_property($conversations, 'timecreated', core_collator::SORT_NUMERIC);
+    usort($conversations, "message_cmp");
     $conversations = array_reverse($conversations);
 
     return $conversations;
@@ -831,7 +831,7 @@ function message_get_recent_notifications($user, $limitfrom=0, $limitto=100) {
               FROM {message_read} mr
                    JOIN {user} u ON u.id=mr.useridfrom
              WHERE mr.useridto = :userid1 AND u.deleted = '0' AND mr.notification = :notification
-             ORDER BY mr.timecreated DESC";
+             ORDER BY mr.timecreated DESC, mr.id DESC";
     $params = array('userid1' => $user->id, 'notification' => 1);
 
     $notifications =  $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
@@ -2073,7 +2073,7 @@ function message_get_history($user1, $user2, $limitnum=0, $viewingnewmessages=fa
     //we want messages sorted oldest to newest but if getting a subset of messages we need to sort
     //desc to get the last $limitnum messages then flip the order in php
     $sort = 'asc';
-    if ($limitnum>0) {
+    if ($limitnum > 0) {
         $sort = 'desc';
     }
 
@@ -2090,20 +2090,20 @@ function message_get_history($user1, $user2, $limitnum=0, $viewingnewmessages=fa
         (useridto = ? AND useridfrom = ? AND timeuserfromdeleted = 0))";
     if ($messages_read = $DB->get_records_select('message_read', $sql . $notificationswhere . $ownnotificationwhere,
                                                     array($user1->id, $user2->id, $user2->id, $user1->id, $user1->id),
-                                                    "timecreated $sort", '*', 0, $limitnum)) {
+                                                    "timecreated $sort, id $sort", '*', 0, $limitnum)) {
         foreach ($messages_read as $message) {
             $messages[] = $message;
         }
     }
     if ($messages_new = $DB->get_records_select('message', $sql . $ownnotificationwhere,
                                                     array($user1->id, $user2->id, $user2->id, $user1->id, $user1->id),
-                                                    "timecreated $sort", '*', 0, $limitnum)) {
+                                                    "timecreated $sort, id $sort", '*', 0, $limitnum)) {
         foreach ($messages_new as $message) {
             $messages[] = $message;
         }
     }
 
-    $result = core_collator::asort_objects_by_property($messages, 'timecreated', core_collator::SORT_NUMERIC);
+    usort($messages, "message_cmp");
 
     //if we only want the last $limitnum messages
     $messagecount = count($messages);
@@ -2112,6 +2112,29 @@ function message_get_history($user1, $user2, $limitnum=0, $viewingnewmessages=fa
     }
 
     return $messages;
+}
+
+/**
+ * Comparison function to sort messages, older first.
+ * @param  [object] $a message or message_read table record.
+ * @param  [object] $b message or message_read table record.
+ * @return [int]    Comparison result
+ */
+function message_cmp($a, $b) {
+    if ($a->timecreated == $b->timecreated) {
+        // Read messages should be first.
+        if (!isset($a->timeread) && isset($b->timeread)) {
+            return 1;
+        }
+
+        if (!isset($b->timeread) && isset($a->timeread)) {
+            return -1;
+        }
+
+        // If there aren't any difference use id to differ them.
+        return $a->id - $b->id;
+    }
+    return $a->timecreated - $b->timecreated;
 }
 
 /**
@@ -2499,7 +2522,7 @@ function message_move_userfrom_unread2read($userid) {
     global $DB;
 
     // move all unread messages from message table to message_read
-    if ($messages = $DB->get_records_select('message', 'useridfrom = ?', array($userid), 'timecreated')) {
+    if ($messages = $DB->get_records_select('message', 'useridfrom = ?', array($userid), 'timecreated, id')) {
         foreach ($messages as $message) {
             message_mark_message_read($message, 0); //set timeread to 0 as the message was never read
         }
@@ -2517,7 +2540,7 @@ function message_move_userfrom_unread2read($userid) {
 function message_mark_messages_read($touserid, $fromuserid) {
     global $DB;
 
-    $sql = 'SELECT m.* FROM {message} m WHERE m.useridto=:useridto AND m.useridfrom=:useridfrom';
+    $sql = 'SELECT m.* FROM {message} m WHERE m.useridto=:useridto AND m.useridfrom=:useridfrom ORDER BY timecreated ASC, id ASC';
     $messages = $DB->get_recordset_sql($sql, array('useridto' => $touserid,'useridfrom' => $fromuserid));
 
     foreach ($messages as $message) {
@@ -2776,7 +2799,7 @@ function message_page_type_list($pagetype, $parentcontext, $currentcontext) {
  * @since  2.8
  */
 function message_get_messages($useridto, $useridfrom = 0, $notifications = -1, $read = true,
-                                $sort = 'mr.timecreated DESC', $limitfrom = 0, $limitnum = 0) {
+                                $sort = 'mr.timecreated DESC, mr.id DESC', $limitfrom = 0, $limitnum = 0) {
     global $DB;
 
     $messagetable = $read ? '{message_read}' : '{message}';
