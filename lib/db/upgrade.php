@@ -2172,5 +2172,161 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2020011700.02);
     }
 
+
+    if ($oldversion < 2020013100.00) {
+
+    	// Migrate default message output config.
+        $preferences = get_config('message');
+
+        $treated_prefs = array();
+
+        foreach ($preferences as $preference => $value) {
+            $providerParts = explode('_provider_', $preference);
+            if (count($providerParts) > 1) {
+                $provider = $providerParts[0];
+                $preference = $providerParts[1];
+            }
+
+            $parts = explode('_', $preference);
+            $key = array_pop($parts);
+
+            if (in_array($key, array('permitted', 'loggedin', 'loggedoff'))) {
+                if ($key == 'permitted') {
+                    $key = $provider;
+                } else {
+                    $value = explode(',', $value);
+                }
+
+                $prefname = implode('_', $parts);
+
+                if (!isset($treated_prefs[$prefname])) {
+                    $treated_prefs[$prefname] = array();
+                }
+
+                $treated_prefs[$prefname][$key] = $value;
+            }
+        }
+
+        foreach ($treated_prefs as $prefname => $values) {
+            $enabled = [];
+
+            // Enable if one of those is enabled.
+            $loggedin = isset($values['loggedin']) ? $values['loggedin'] : [];
+            unset($values['loggedin']);
+            foreach ($loggedin as $provider) {
+                $enabled[$provider] = 1;
+            }
+            $loggedoff = isset($values['loggedoff']) ? $values['loggedoff']: [];
+            unset($values['loggedoff']);
+            foreach ($loggedoff as $provider) {
+                $enabled[$provider] = 1;
+            }
+
+            foreach ($values as $provider => $value) {
+                switch ($value) {
+                    case 'forced':
+                        // Provider is enabled by force.
+                        $enabled[$provider] = 1;
+                        $locked = true;
+                        break;
+                    case 'disallowed':
+                        // Provider is disabled by force.
+                        unset($enabled[$provider]);
+                        $locked = true;
+                        break;
+                    case 'permitted':
+                        // Provider is not forced.
+                        $locked = false;
+                        break;
+                    default:
+                        // Invalid value.
+                        continue 1;
+                }
+
+                if ($locked) {
+                    set_config($provider.'_provider_'.$prefname.'_locked', 1, 'message');
+                }
+                unset_config($provider.'_provider_'.$prefname.'_permitted', 'message');
+            }
+
+            $value = implode(',', array_keys($enabled));
+            set_config('message_provider_'.$prefname.'_enabled', $value, 'message');
+            unset_config('message_provider_'.$prefname.'_loggedin', 'message');
+            unset_config('message_provider_'.$prefname.'_loggedoff', 'message');
+        }
+
+        // Migrate user preferences.
+        $currentuser = 0;
+        $user = [];
+
+        $params = array('loggedin' => 'message_provider_%_loggedin', 'loggedoff' => 'message_provider_%_loggedoff');
+        $loggedin = $DB->sql_like('name', ':loggedin');
+        $loggedoff = $DB->sql_like('name', ':loggedoff');
+        $loggedinoffsql = "$loggedin OR $loggedoff";
+        $deletesql = "($loggedinoffsql) AND userid = :userid";
+        $rs = $DB->get_recordset_select('user_preferences', $loggedinoffsql , $params, 'userid', 'id,userid,name,value');
+
+
+        foreach ($rs as $record) {
+            print_object($record);
+            $nameparts = explode('_', $record->name);
+            // Remove loggedin/loggedoff
+            array_pop($nameparts);
+
+            if ($currentuser != $record->userid) {
+                if (!empty($user)) {
+                    $userparams = array_merge($params, ['userid' => $currentuser]);
+                    $DB->delete_records_select('user_preferences', $deletesql, $userparams);
+                    print_object($user);
+                    foreach($user as $prefixname => $value) {
+                        $value = implode(',', $value);
+                        $preferencename = $prefixname.'_enabled';
+                        if (!empty($value) && !$DB->record_exists('user_preferences',
+                                array('userid' => $currentuser, 'name' => $preferencename))) {
+                            // If already set, do nothing, else insert it.
+                            $preference = new stdClass();
+                            $preference->userid = $currentuser;
+                            $preference->name   = $preferencename;
+                            $preference->value  = $value;
+                            $DB->insert_record('user_preferences', $preference);
+                        }
+                    }
+                }
+                $user = [];
+            }
+
+            $name = implode('_', $nameparts);
+            $value = $record->value == 'none' ? [] : explode(',', $record->value);
+            if (isset($user[$name])) {
+                $user[$name] = array_unique(array_merge($user[$name], $value));
+            } else {
+                $user[$name] = $value;
+            }
+
+            $currentuser = $record->userid;
+        }
+
+        if (!empty($user)) {
+            $userparams = array_merge($params, ['userid' => $currentuser]);
+            $DB->delete_records_select('user_preferences', $deletesql, $userparams);
+            print_object($user);
+            foreach($user as $prefixname => $value) {
+                $value = implode(',', $value);
+                $preferencename = $prefixname.'_enabled';
+                if (!empty($value) && !$DB->record_exists('user_preferences',
+                        array('userid' => $currentuser, 'name' => $preferencename))) {
+                    // If already set, do nothing, else insert it.
+                    $preference = new stdClass();
+                    $preference->userid = $currentuser;
+                    $preference->name   = $preferencename;
+                    $preference->value  = $value;
+                    $DB->insert_record('user_preferences', $preference);
+                }
+            }
+        }
+        $rs->close();
+
+        upgrade_main_savepoint(true, 2020013100.00);
+    }
     return true;
 }
