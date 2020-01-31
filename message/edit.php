@@ -84,10 +84,6 @@ if ($currentuser) {
     // Open the message drawer to show the settings.
     echo $OUTPUT->heading(get_string('messagepreferences', 'core_message'));
     $PAGE->requires->js_call_amd('core_message/message_drawer_helper', 'showSettings');
-} else {
-    // Viewing another user's preferences so render the old page.
-    $renderer = $PAGE->get_renderer('core', 'message');
-    echo $renderer->render_user_message_preferences($user);
 }
 
 echo $OUTPUT->footer();
