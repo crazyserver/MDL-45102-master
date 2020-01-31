@@ -39,18 +39,8 @@
                 "displayname": "Popup notification",
                 "name": "popup",
                 "locked": 0,
-                "loggedin": {
-                    "name": "loggedin",
-                    "displayname": "When I'm logged in",
-                    "checked": 0,
-                    "iconurl": "some url"
-                },
-                "loggedoff": {
-                    "name": "loggedoff",
-                    "displayname": "When I'm offline",
-                    "checked": 0,
-                    "iconurl": "some url"
-                }
+                "userconfigured": 1,
+                "enabled": 1
             }
         ]
     }
@@ -63,62 +53,26 @@
                 <div class="dimmed_text">{{lockedmessage}}</div>
             {{/locked}}
             {{^locked}}
-                <div class="disabled-message">{{#str}} disabled, question {{/str}}</div>
                 <form>
-                    <div class="container-fluid">
-                        <div class="row-fluid">
-                            <div class="col-6">
-                                {{#loggedin}}
-                                    {{< core/hover_tooltip }}
-                                        {{$anchor}}
-                                            <label class="preference-state"
-                                                title="{{displayname}}"
-                                                data-state="{{name}}">
-
-                                                <span class="accesshide">{{displayname}}</span>
-                                                <input type="checkbox"
-                                                    tabindex="-1"
-                                                    class="accesshide"
-                                                    {{#checked}}checked{{/checked}}
-                                                    {{#disableall}}disabled{{/disableall}} />
-                                                <div class="preference-state-status-container" tabindex="0">
-                                                    <span class="on-text">{{#str}} on, message {{/str}}</span>
-                                                    <span class="off-text">{{#str}} off, message {{/str}}</span>
-                                                    {{> core/loading }}
-                                                </div>
-                                            </label>
-                                        {{/anchor}}
-                                        {{$tooltip}}{{displayname}}{{/tooltip}}
-                                    {{/ core/hover_tooltip }}
-                                {{/loggedin}}
-                            </div>
-                            <div class="col-6">
-                                {{#loggedoff}}
-                                    {{< core/hover_tooltip }}
-                                        {{$anchor}}
-                                            <label class="preference-state"
-                                                title="{{displayname}}"
-                                                data-state="{{name}}">
-
-                                                <span class="accesshide">{{displayname}}</span>
-                                                <input type="checkbox"
-                                                    tabindex="-1"
-                                                    class="accesshide"
-                                                    {{#checked}}checked{{/checked}}
-                                                    {{#disableall}}disabled{{/disableall}} />
-                                                <div class="preference-state-status-container" tabindex="0">
-                                                    <span class="on-text">{{#str}} on, message {{/str}}</span>
-                                                    <span class="off-text">{{#str}} off, message {{/str}}</span>
-                                                    {{> core/loading }}
-                                                </div>
-                                            </label>
-                                        {{/anchor}}
-                                        {{$tooltip}}{{displayname}}{{/tooltip}}
-                                    {{/ core/hover_tooltip }}
-                                {{/loggedoff}}
+                    {{< core/hover_tooltip }}
+                    {{$anchor}}
+                        <div class="preference-state" data-preference="{{preferencekey}}_{{name}}">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox"
+                                    tabindex="-1"
+                                    id="{{preferencekey}}_{{name}}"
+                                    name="{{preferencekey}}_{{name}}"
+                                    class="custom-control-input notification_enabled"
+                                    {{#enabled}}checked{{/enabled}}
+                                >
+                                <label for="{{preferencekey}}_{{name}}" class="custom-control-label">
+                                    {{#str}} enabled, core_message {{/str}}
+                                </label>
                             </div>
                         </div>
-                    </div>
+                    {{/anchor}}
+                    {{$tooltip}}{{displayname}}{{/tooltip}}
+                    {{/ core/hover_tooltip }}
                 </form>
             {{/locked}}
         </td>

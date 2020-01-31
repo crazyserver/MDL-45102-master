@@ -107,37 +107,27 @@ class notification_list_processor implements templatable, renderable {
     public function export_for_template(\renderer_base $output) {
         $processor = $this->processor;
         $preferencebase = $this->get_preference_base();
-        $permitted = MESSAGE_DEFAULT_PERMITTED;
         $defaultpreferences = get_message_output_default_preferences();
-        $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_permitted';
+        $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_locked';
         $context = [
             'displayname' => get_string('pluginname', 'message_'.$processor->name),
             'name' => $processor->name,
             'locked' => false,
             'userconfigured' => $processor->object->is_user_configured(),
-            'loggedin' => [
-                'name' => 'loggedin',
-                'displayname' => get_string('loggedindescription', 'message'),
-                'checked' => $this->is_preference_enabled($preferencebase.'_loggedin'),
-            ],
-            'loggedoff' => [
-                'name' => 'loggedoff',
-                'displayname' => get_string('loggedoffdescription', 'message'),
-                'checked' => $this->is_preference_enabled($preferencebase.'_loggedoff'),
-            ],
+            'enabled' => $this->is_preference_enabled($preferencebase.'_enabled')
         ];
 
         // Determine the default setting.
         if (isset($defaultpreferences->{$defaultpreference})) {
-            $permitted = $defaultpreferences->{$defaultpreference};
+            $context['locked'] = $defaultpreferences->{$defaultpreference};
         }
         // If settings are disallowed or forced, just display the corresponding message, if not use user settings.
-        if ($permitted == 'disallowed') {
-            $context['locked'] = true;
-            $context['lockedmessage'] = get_string('disallowed', 'message');
-        } else if ($permitted == 'forced') {
-            $context['locked'] = true;
-            $context['lockedmessage'] = get_string('forced', 'message');
+        if ($context['locked']) {
+            if ($context['enabled']) {
+                $context['lockedmessage'] = get_string('forced', 'message');
+            } else {
+                $context['lockedmessage'] = get_string('disallowed', 'message');
+            }
         }
 
         return $context;

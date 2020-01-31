@@ -4315,20 +4315,7 @@ class core_message_external extends external_api {
                                                     'lockedmessage' => new external_value(PARAM_TEXT,
                                                         'Text to display if locked', VALUE_OPTIONAL),
                                                     'userconfigured' => new external_value(PARAM_INT, 'Is configured?'),
-                                                    'loggedin' => new external_single_structure(
-                                                        array(
-                                                            'name' => new external_value(PARAM_NOTAGS, 'Name'),
-                                                            'displayname' => new external_value(PARAM_TEXT, 'Display name'),
-                                                            'checked' => new external_value(PARAM_BOOL, 'Is checked?'),
-                                                        )
-                                                    ),
-                                                    'loggedoff' => new external_single_structure(
-                                                        array(
-                                                            'name' => new external_value(PARAM_NOTAGS, 'Name'),
-                                                            'displayname' => new external_value(PARAM_TEXT, 'Display name'),
-                                                            'checked' => new external_value(PARAM_BOOL, 'Is checked?'),
-                                                        )
-                                                    ),
+                                                    'enabled' => new external_value(PARAM_BOOL, 'Is enabled?'),
                                                 )
                                             ),
                                             'Processors values for this notification'
