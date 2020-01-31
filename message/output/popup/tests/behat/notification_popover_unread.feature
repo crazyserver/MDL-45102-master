@@ -14,8 +14,7 @@ Feature: Notification popover unread notifications
     # Make sure the popup notifications are enabled for assignments.
     And the following config values are set as admin:
       | popup_provider_mod_assign_assign_notification_permitted | permitted | message |
-      | message_provider_mod_assign_assign_notification_loggedin | popup | message |
-      | message_provider_mod_assign_assign_notification_loggedoff | popup | message |
+      | message_provider_mod_assign_assign_notification_enabled | popup | message |
     And the following "users" exist:
       | username | firstname | lastname | email |
       | teacher1 | Teacher | 1 | teacher1@example.com |
