@@ -83,14 +83,14 @@ class notification_list_processor implements templatable, renderable {
      * @param string $name preference name
      * @return bool
      */
-    private function is_preference_enabled($name) {
+    private function is_preference_enabled($name, $locked) {
         $processor = $this->processor;
         $preferences = $this->preferences;
         $defaultpreferences = get_message_output_default_preferences();
 
         $checked = false;
         // See if user has touched this preference.
-        if (isset($preferences->{$name})) {
+        if (!$locked && isset($preferences->{$name})) {
             // User has some preferences for this state in the database.
             $checked = isset($preferences->{$name}[$processor->name]);
         } else {
@@ -107,37 +107,30 @@ class notification_list_processor implements templatable, renderable {
     public function export_for_template(\renderer_base $output) {
         $processor = $this->processor;
         $preferencebase = $this->get_preference_base();
-        $permitted = MESSAGE_DEFAULT_PERMITTED;
         $defaultpreferences = get_message_output_default_preferences();
-        $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_permitted';
+        $defaultpreference = $processor->name.'_provider_'.$preferencebase.'_locked';
         $context = [
             'displayname' => get_string('pluginname', 'message_'.$processor->name),
             'name' => $processor->name,
             'locked' => false,
             'userconfigured' => $processor->object->is_user_configured(),
-            'loggedin' => [
-                'name' => 'loggedin',
-                'displayname' => get_string('loggedindescription', 'message'),
-                'checked' => $this->is_preference_enabled($preferencebase.'_loggedin'),
-            ],
-            'loggedoff' => [
-                'name' => 'loggedoff',
-                'displayname' => get_string('loggedoffdescription', 'message'),
-                'checked' => $this->is_preference_enabled($preferencebase.'_loggedoff'),
-            ],
+            'enabled' => false
         ];
 
         // Determine the default setting.
         if (isset($defaultpreferences->{$defaultpreference})) {
-            $permitted = $defaultpreferences->{$defaultpreference};
+            $context['locked'] = $defaultpreferences->{$defaultpreference};
         }
+
+        $context['enabled'] = $this->is_preference_enabled($preferencebase.'_enabled', $context['locked']);
+
         // If settings are disallowed or forced, just display the corresponding message, if not use user settings.
-        if ($permitted == 'disallowed') {
-            $context['locked'] = true;
-            $context['lockedmessage'] = get_string('disallowed', 'message');
-        } else if ($permitted == 'forced') {
-            $context['locked'] = true;
-            $context['lockedmessage'] = get_string('forced', 'message');
+        if ($context['locked']) {
+            if ($context['enabled']) {
+                $context['lockedmessage'] = get_string('forced', 'message');
+            } else {
+                $context['lockedmessage'] = get_string('disallowed', 'message');
+            }
         }
 
         return $context;

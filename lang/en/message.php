@@ -93,11 +93,7 @@ $string['info'] = 'User info';
 $string['isnotinyourcontacts'] = '{$a} is not in your contacts';
 $string['loadmore'] = 'Load more';
 $string['loggedin'] = 'Online';
-$string['loggedin_help'] = 'Configure how you would like to receive notifications when you are logged into Moodle';
-$string['loggedindescription'] = 'When you are logged into Moodle';
 $string['loggedoff'] = 'Offline';
-$string['loggedoff_help'] = 'Configure how you would like to receive notifications when you are not logged into Moodle';
-$string['loggedoffdescription'] = 'When you are not logged into Moodle';
 $string['managemessageoutputs'] = 'Default notification preferences';
 $string['messageoutputs'] = 'Notification plugins';
 $string['messagepreferences'] = 'Message preferences';
@@ -286,3 +282,9 @@ $string['canceledit'] = 'Cancel editing messages';
 // Deprecated since Moodle 3.9.
 $string['messagecontactrequestsnotification'] = '{$a} is requesting to be added as a contact.';
 $string['messagecontactrequestsnotificationsubject'] = 'Contact request from {$a}';
+
+// Deprecated since Moodle 3.11.
+$string['loggedin_help'] = 'Configure how you would like to receive notifications when you are logged into Moodle';
+$string['loggedindescription'] = 'When you are logged into Moodle';
+$string['loggedoff_help'] = 'Configure how you would like to receive notifications when you are not logged into Moodle';
+$string['loggedoffdescription'] = 'When you are not logged into Moodle';

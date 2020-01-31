@@ -149,27 +149,24 @@ class message_airnotifier_external extends external_api {
                         break;
                     }
 
-                    foreach (array('loggedin', 'loggedoff') as $state) {
 
-                        $prefstocheck = array();
-                        $prefname = 'message_provider_'.$provider->component.'_'.$provider->name.'_'.$state;
+                    $prefstocheck = array();
+                    $prefname = 'message_provider_'.$provider->component.'_'.$provider->name.'_enabled';
 
-                        // First get forced settings.
-                        if ($forcedpref = get_config('message', $prefname)) {
-                            $prefstocheck = array_merge($prefstocheck, explode(',', $forcedpref));
-                        }
+                    // First get forced settings.
+                    if ($forcedpref = get_config('message', $prefname)) {
+                        $prefstocheck = array_merge($prefstocheck, explode(',', $forcedpref));
+                    }
 
-                        // Then get user settings.
-                        if ($userpref = get_user_preferences($prefname, '', $user->id)) {
-                            $prefstocheck = array_merge($prefstocheck, explode(',', $userpref));
-                        }
+                    // Then get user settings.
+                    if ($userpref = get_user_preferences($prefname, '', $user->id)) {
+                        $prefstocheck = array_merge($prefstocheck, explode(',', $userpref));
+                    }
 
-                        if (in_array('airnotifier', $prefstocheck)) {
-                            $preferences['configured'] = 1;
-                            $configured = true;
-                            break;
-                        }
-
+                    if (in_array('airnotifier', $prefstocheck)) {
+                        $preferences['configured'] = 1;
+                        $configured = true;
+                        break;
                     }
                 }
 
