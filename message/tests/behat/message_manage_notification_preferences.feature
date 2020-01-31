@@ -27,8 +27,7 @@ Feature: Manage notification preferences - Email
 #   Disable email default value
     Given the following "user preferences" exist:
       | user      | preference                                        | value |
-      | student1  | message_provider_moodle_instantmessage_loggedin   | none  |
-      | student1  | message_provider_moodle_instantmessage_loggedoff  | none  |
+      | student1  | message_provider_moodle_instantmessage_enabled    | none  |
     When I log in as "admin"
     And I navigate to "Messaging > Notification settings" in site administration
     And I set the field "email" to "1"
