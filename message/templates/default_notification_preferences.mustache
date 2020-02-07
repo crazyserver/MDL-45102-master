@@ -93,28 +93,16 @@
                                             name="{{{enabledsetting}}}"
                                             class="custom-control-input provider_enabled"
                                             {{#enabled}}checked{{/enabled}}
+                                            title="{{#str}} enabled, core_message {{/str}}"
                                         >
                                         <label for="{{{enabledsetting}}}" class="custom-control-label">
-                                            {{#str}} enabled, core_message {{/str}}
+
                                         </label>
                                     </div>
                                 </div>
                             </td>
                             {{#settings}}
                                 <td class="text-left">
-                                    <div data-preference="{{{lockedsetting}}}">
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox"
-                                                id="{{{lockedsetting}}}"
-                                                name="{{{lockedsetting}}}"
-                                                class="custom-control-input locked_message_setting"
-                                                {{#locked}}checked{{/locked}}
-                                            >
-                                            <label for="{{{lockedsetting}}}" class="custom-control-label">
-                                                {{#str}} forced, core_message {{/str}}
-                                            </label>
-                                        </div>
-                                    </div>
                                     <div data-preference="{{{enabledsetting}}}">
                                         <div class="custom-control custom-switch {{#locked}} dimmed_text{{/locked}}">
                                             <input type="checkbox"
@@ -125,6 +113,19 @@
                                             >
                                             <label for="{{{enabledsetting}}}" class="custom-control-label">
                                                 {{#str}} enabled, core_message {{/str}}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div data-preference="{{{lockedsetting}}}">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox"
+                                                id="{{{lockedsetting}}}"
+                                                name="{{{lockedsetting}}}"
+                                                class="custom-control-input locked_message_setting"
+                                                {{#locked}}checked{{/locked}}
+                                            >
+                                            <label for="{{{lockedsetting}}}" class="custom-control-label">
+                                                {{#str}} forced, core_message {{/str}}
                                             </label>
                                         </div>
                                     </div>
