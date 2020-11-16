@@ -85,7 +85,7 @@ class data_field_multimenu extends data_field_base {
         return $str;
     }
 
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         global $CFG, $DB;
 
         if (is_array($value)){
