@@ -976,6 +976,11 @@ function data_get_tag_title_field($dataid) {
         $filteredfields[] = $field;
     }
 
+    // No title field found, use any other.
+    if (empty($filteredfields)) {
+        $filteredfields = $fields;
+    }
+
     $sort = function($record1, $record2) {
         // If a content's fieldtype is compulsory in the database than it would have priority than any other non-compulsory content.
         if (($record1->required && $record2->required) || (!$record1->required && !$record2->required)) {
@@ -999,24 +1004,21 @@ function data_get_tag_title_field($dataid) {
 /**
  * Get the title of an entry to show when displaying tag results.
  *
- * @param stdClass $field The field from the 'data_fields' table
+ * @param stdClass $fieldrecord The field from the 'data_fields' table
  * @param stdClass $entry The entry from the 'data_records' table
  * @return string The title of the entry
  */
-function data_get_tag_title_for_entry($field, $entry) {
-    global $CFG, $DB;
-    require_once($CFG->dirroot . '/mod/data/field/' . $field->type . '/field.class.php');
+function data_get_tag_title_for_entry($fieldrecord, $entry): string {
+    global $DB;
 
-    $classname = 'data_field_' . $field->type;
-    $sql = "SELECT dc.*
-              FROM {data_content} dc
-        INNER JOIN {data_fields} df
-                ON dc.fieldid = df.id
-             WHERE df.id = :fieldid
-               AND dc.recordid = :recordid";
-    $fieldcontents = $DB->get_record_sql($sql, array('recordid' => $entry->id, 'fieldid' => $field->id));
+    if (!$fieldrecord) {
+        return '';
+    }
 
-    return $classname::get_content_value($fieldcontents);
+    $data = $DB->get_record('data', ['id' => $entry->dataid], '*', MUST_EXIST);
+    $field = data_get_field($fieldrecord, $data);
+
+    return $field->display_browse_field($entry->id, 'singletemplate');
 }
 
 /**
