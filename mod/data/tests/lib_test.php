@@ -1004,6 +1004,29 @@ class mod_data_lib_testcase extends advanced_testcase {
         $this->assertStringContainsString('value12', $res->content);
         $this->assertStringContainsString('value13', $res->content);
         $this->assertStringNotContainsString('value14', $res->content);
+
+        // Test get tagged records when they don't have a valid tag title field.
+        // Check $validfieldtypes array defined on data_get_tag_title_field function.
+        $fieldrecord = new StdClass();
+        $fieldrecord->name = 'field-1';
+        $fieldrecord->type = 'date';
+
+        $data2 = $this->getDataGenerator()->create_module('data', array('course' => $course1->id, 'approval' => true));
+        $field1 = $datagenerator->create_field($fieldrecord, $data2);
+
+        $datagenerator->create_entry($data2, [$field1->field->id => '16-11-2020'], 0, ['Rabbits', 'Dogs']);
+        $datagenerator->create_entry($data2, [$field1->field->id => '16-11-2019'], 0, ['Rabbits', 'mice']);
+        $datagenerator->create_entry($data2, [$field1->field->id => '16-11-2018'], 0, ['Rabbits']);
+        $datagenerator->create_entry($data2, [$field1->field->id => '16-11-2017'], 0);
+
+        $tag = core_tag_tag::get_by_name(0, 'Rabbits');
+
+        // Admin can see everything.
+        $res = mod_data_get_tagged_records($tag, false, 0, 0, 1, 0);
+        $this->assertStringContainsString('2020', $res->content);
+        $this->assertStringContainsString('2019', $res->content);
+        $this->assertStringContainsString('2018', $res->content);
+        $this->assertStringNotContainsString('2017', $res->content);
     }
 
     public function test_mod_data_get_tagged_records_approval() {
