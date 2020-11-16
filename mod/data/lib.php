@@ -1939,6 +1939,8 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
     $options = new stdClass();
     $options->para=false;
     $options->noclean=true;
+    // Removing the filter on the search to avoid replacements that could break on the form.
+    $options->filter = false;
     echo '<tr><td>';
     echo preg_replace($patterns, $replacement, format_text($data->asearchtemplate, FORMAT_HTML, $options));
     echo '</td></tr>';
