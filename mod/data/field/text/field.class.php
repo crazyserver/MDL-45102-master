@@ -32,7 +32,7 @@ class data_field_text extends data_field_base {
      */
     protected static $priority = self::MAX_PRIORITY;
 
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         return '<label class="accesshide" for="f_' . $this->field->id . '">' . $this->field->name.'</label>' .
                '<input type="text" class="form-control" size="16" id="f_' . $this->field->id . '" ' .
                'name="f_' . $this->field->id . '" value="' . s($value) . '" />';

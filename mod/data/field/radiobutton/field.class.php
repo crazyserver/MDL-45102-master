@@ -85,7 +85,7 @@ class data_field_radiobutton extends data_field_base {
         return $str;
     }
 
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         global $CFG, $DB;
 
         $varcharcontent = $DB->sql_compare_text('content', 255);

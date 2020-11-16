@@ -89,7 +89,7 @@ class data_field_latlong extends data_field_base {
         return $str;
     }
 
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         global $CFG, $DB;
 
         $varcharlat = $DB->sql_compare_text('content');

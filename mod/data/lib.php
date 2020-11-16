@@ -392,6 +392,16 @@ class data_field_base {     // Base class for Database Field Types (see field/*/
     }
 
     /**
+     * Display the content of the field in search mode
+     *
+     * @param string|array $value Default value when no search has been performed.
+     * @return string HTML content fields to show on search.
+     */
+    public function display_search_field($value = ""): string {
+        return "";
+    }
+
+    /**
      * Update the content of one data field in the data_content table
      * @global object
      * @param int $recordid

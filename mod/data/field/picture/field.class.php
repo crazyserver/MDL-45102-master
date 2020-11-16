@@ -134,7 +134,7 @@ class data_field_picture extends data_field_base {
         return $file;
     }
 
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         return '<label class="accesshide" for="f_' . $this->field->id . '">' . get_string('fieldname', 'data') . '</label>' .
                '<input type="text" size="16" id="f_' . $this->field->id . '" name="f_' . $this->field->id . '" ' .
                'value="' . s($value) . '" class="form-control"/>';

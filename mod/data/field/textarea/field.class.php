@@ -169,8 +169,7 @@ class data_field_textarea extends data_field_base {
         return $str;
     }
 
-
-    function display_search_field($value = '') {
+    public function display_search_field($value = ""): string {
         return '<label class="accesshide" for="f_' . $this->field->id . '">' . $this->field->name . '</label>' .
                '<input type="text" size="16" id="f_' . $this->field->id . '" name="f_' . $this->field->id . '" ' .
                'value="' . s($value) . '" class="form-control"/>';
